@@ -11,8 +11,13 @@
 #include <vector>
 
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_opengl.h>
 #include <OpenGL/gl.h>
+
+#ifdef __APPLE__
+#define glGenVertexArrays glGenVertexArraysAPPLE
+#define glBindVertexArray glBindVertexArrayAPPLE
+#endif
+
 #include <glm/glm.hpp>
 
 #endif
