@@ -5,6 +5,9 @@
 #define WINW 1280
 #define WINH 720
 
+//Size of cube (in viewspace coordinates)
+#define CUBE 0.5
+
 #include <cstdio>
 #include <cstdlib>
 #include <string>

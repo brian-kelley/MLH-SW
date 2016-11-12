@@ -1,7 +1,7 @@
 #include "camera.h"
 
 float t = 0;
-float dt = 0.04;
+float dt = 0.02;
 
 void cameraUpdate()
 {

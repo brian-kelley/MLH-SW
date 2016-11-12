@@ -8,6 +8,9 @@ GLuint progID;
 GLuint vbo;
 GLuint vao;
 
+//Space allocated for vbo (in vertices)
+int vboCapacity;
+
 //Shader attributes
 GLint posAttribLoc;
 GLint colorAttribLoc;
@@ -16,6 +19,7 @@ GLint viewLoc;
 GLint projLoc;
 
 vec3 camPos;
+vector<Vertex> vertices;
 
 void initWindow()
 {
@@ -26,6 +30,8 @@ void initWindow()
   window = SDL_CreateWindow("Defense", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINW, WINH, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
   glContext = SDL_GL_CreateContext(window);
   glViewport(0, 0, WINW, WINH);
+  glEnable(GL_DEPTH_TEST);
+  glClearColor(1, 1, 1, 1);
   initShaders();
   initVBO();
 }
@@ -64,6 +70,7 @@ void initShaders()
   fshade = glCreateShader(GL_FRAGMENT_SHADER);
   glShaderSource(fshade, 1, &f, NULL);
   glCompileShader(fshade);
+  err[0] = 0;
   glGetShaderInfoLog(fshade, 500, NULL, err);
   if(err[0])
   {
@@ -75,22 +82,12 @@ void initShaders()
   glLinkProgram(progID);
   glUseProgram(progID);
   posAttribLoc = glGetAttribLocation(progID, "position");
-  printf("pos loc: %i\n", posAttribLoc);
   colorAttribLoc = glGetAttribLocation(progID, "color");
-  printf("color loc: %i\n", colorAttribLoc);
   viewLoc = glGetUniformLocation(progID, "view");
-  printf("view loc: %i\n", viewLoc);
   projLoc = glGetUniformLocation(progID, "proj");
-  printf("proj loc: %i\n", projLoc);
   glDeleteShader(vshade);
   glDeleteShader(fshade);
 }
-
-struct Vertex
-{
-  vec3 pos;
-  vec4 color;
-};
 
 void initVBO()
 {
@@ -99,15 +96,7 @@ void initVBO()
   //initialize VBO while VAO is bound
   glGenBuffers(1, &vbo);
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  Vertex verts[3];
-  //triangle positions
-  verts[0].pos = {-0.5, 0.5, 0};
-  verts[1].pos = {-0.5, -0.5, 0};
-  verts[2].pos = {0.5, 0.5, 0};
-  verts[0].color = {1, 0, 0, 1};
-  verts[1].color = {0, 1, 0, 1};
-  verts[2].color = {0, 0, 1, 1};
-  glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(Vertex), verts, GL_STATIC_DRAW);
+  vboCapacity = 0;
   glVertexAttribPointer(posAttribLoc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*) 0);
   glVertexAttribPointer(colorAttribLoc, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*) offsetof(Vertex, color));
   glEnableVertexAttribArray(posAttribLoc);
@@ -118,11 +107,15 @@ void initVBO()
 
 void doFrame()
 {
-  glClearColor(1.0, 1.0, 1.0, 1.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glUseProgram(progID);
+  drawCube(0, 0, 0, vec4(0, 0, 0, 1));
+  drawCube(0, 0, 1, vec4(1, 0, 0, 1));
+  drawCube(0, 0, 2, vec4(0, 1, 0, 1));
+  drawCube(0, 1, 2, vec4(0, 0, 1, 1));
+  updateVBO();
   glBindVertexArray(vao);
-  glDrawArrays(GL_TRIANGLES, 0, 3);
+  glDrawArrays(GL_TRIANGLES, 0, vertices.size());
   glBindVertexArray(0);
   SDL_GL_SwapWindow(window);
 }
@@ -131,5 +124,67 @@ void updateMatrices(mat4& view, mat4& proj)
 {
   glUniformMatrix4fv(viewLoc, 1, GL_FALSE, value_ptr(view));
   glUniformMatrix4fv(projLoc, 1, GL_FALSE, value_ptr(proj));
+}
+
+void drawCube(int x, int y, int z, vec4 color)
+{
+  float ax = x * CUBE;
+  float ay = y * CUBE;
+  float az = z * CUBE;
+  float bx = ax + CUBE;
+  float by = ay + CUBE;
+  float bz = az + CUBE;
+  vec3 p000(ax, ay, az);
+  vec3 p001(ax, ay, bz);
+  vec3 p010(ax, by, az);
+  vec3 p011(ax, by, bz);
+  vec3 p100(bx, ay, az);
+  vec3 p101(bx, ay, bz);
+  vec3 p110(bx, by, az);
+  vec3 p111(bx, by, bz);
+  //add the 36 vertices needed for 12 triangles (6 quads)
+  vertices.reserve(vertices.size() + 36);
+  #define ADD_TRI(a, b, c) \
+  { \
+    Vertex v1(a, color); \
+    Vertex v2(b, color); \
+    Vertex v3(c, color); \
+    vertices.push_back(v1); \
+    vertices.push_back(v2); \
+    vertices.push_back(v3); \
+  } 
+  //front
+  ADD_TRI(p000, p100, p110);
+  ADD_TRI(p000, p110, p010);
+  //top
+  ADD_TRI(p000, p100, p101);
+  ADD_TRI(p000, p101, p001);
+  //left
+  ADD_TRI(p000, p001, p010);
+  ADD_TRI(p010, p001, p011);
+  //right
+  ADD_TRI(p100, p101, p111);
+  ADD_TRI(p100, p111, p110);
+  //back
+  ADD_TRI(p101, p001, p111);
+  ADD_TRI(p001, p011, p111);
+  //bottom
+  ADD_TRI(p010, p110, p111);
+  ADD_TRI(p010, p111, p011);
+}
+
+void updateVBO()
+{
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  if(vertices.size() <= vboCapacity)
+  {
+    glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(Vertex), &vertices[0]);
+  }
+  else
+  {
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_DYNAMIC_DRAW);
+    vboCapacity = vertices.size();
+  }
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
