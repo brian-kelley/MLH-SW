@@ -6,7 +6,8 @@
 void initWindow();
 void initShaders();
 void initVBO();
-bool doFrame();
+void doFrame();
+void updateMatrices(mat4& view, mat4& proj);
 
 #endif
 
