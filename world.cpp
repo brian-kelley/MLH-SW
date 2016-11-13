@@ -266,7 +266,7 @@ bool entityOnGround(Entity& e)
   //  -pos.y is (almost) exactly on a block boundary
   //  -the block below is solid
   //level is the y of the block that the entity could be standing on
-  int level = floorf(e.pos.y);
+  int level = ceilf(e.pos.y);
   float ey = level;
   //standing on world bottom
   if(e.pos.y < 1e-4)
@@ -274,7 +274,7 @@ bool entityOnGround(Entity& e)
   int unused1 = 0;
   int unused2 = 0;
   //need to test all blocks with corners within circular entity base
-  if(fabsf(ey - e.pos.y) > 1e-4 || !checkBlockDisk(e.pos.x, e.pos.z, e.hitWidth / 2, level + 1, unused1, unused2))
+  if(fabsf(ey - e.pos.y) > 1e-4 || !checkBlockDisk(e.pos.x, e.pos.z, e.hitWidth / 2, level, unused1, unused2))
     return false;
   return true;
 }
