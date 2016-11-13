@@ -59,6 +59,7 @@ void renderWorld()
     }
     blocksChanged = false;
   }
+  setDynamicVBO();
   for(auto& e : entities)
   {
     //draw monsters dark blue

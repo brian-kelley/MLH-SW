@@ -49,7 +49,9 @@ void drawCuboid(vec3 base, float width, float height, vec4 color);
 void drawGround(int blocks);
 //send vertices to VBO
 void updateVBO();
-void drawHUD();
+
+//Hint that upcoming geometry will be changed often
+void setDynamicVBO();
 
 #endif
 
