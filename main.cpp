@@ -1,10 +1,12 @@
 #include "window.h"
 #include "camera.h"
+#include "world.h"
 
 int main()
 {
   initWindow();
   camInit();
+  initWorld();
   while(true)
   {
     const int startTicks = SDL_GetTicks();
@@ -22,6 +24,7 @@ int main()
       }
     }
     cameraUpdate(xrel, yrel);
+    renderWorld();
     doFrame();
     while(SDL_GetTicks() - startTicks < 16);
   }

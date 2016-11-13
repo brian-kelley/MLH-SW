@@ -1,17 +1,16 @@
 #include "camera.h"
 
-//multiply by mouse motion in pixels to get angle update
-static const float sensitivity = 1.0 / 203;
 //speed of player movement, in blocks per second
-static const float speed = 0.4 * CUBE;
+static const float speed = SPEED / 60 * CUBE;
 static vec3 camPos;
 static float hAngle;   //player's horizontal view direction (0 = towards +x)
 static float vAngle;   //player's vertical view direction (0 = level)
 
 void camInit()
 {
-  camPos = vec3(4, 1, 0);
-  hAngle = 0;
+  //start in center of world
+  camPos = vec3(WORLD_SIZE * CUBE / 2, 1, WORLD_SIZE * CUBE / 2);
+  hAngle = 1.5;
   vAngle = 0;
 }
 
@@ -24,12 +23,12 @@ void cameraUpdate(int xrel, int yrel)
   camPos += aheadDist * vec3(cosf(hAngle), 0, sinf(hAngle));
   camPos += leftDist * vec3(sinf(hAngle), 0, -cosf(hAngle));
   //update vAngle and hAngle
-  hAngle += sensitivity * xrel;
+  hAngle += SENSITIVITY * xrel;
   if(hAngle < 0)
     hAngle += 2 * M_PI;
   else if(hAngle > 2 * M_PI)
     hAngle -= 2 * M_PI;
-  vAngle -= sensitivity * yrel;
+  vAngle -= SENSITIVITY * yrel;
   //need to cap vAngle to prevent total gimbal lock
   const float maxPitch = 0.98 * M_PI / 2;
   if(vAngle > maxPitch)
