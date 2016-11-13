@@ -6,6 +6,9 @@ int main()
 {
   initWindow();
   initWorld();
+  int targetX = 0;
+  int targetY = 0;
+  int targetZ = 0;
   while(true)
   {
     const int startTicks = SDL_GetTicks();
@@ -32,8 +35,14 @@ int main()
     updatePlayer(xrel, yrel);
     updateEntities();
     cameraUpdate();
+    bool haveFrameCube = getTargetBlock(targetX, targetY, targetZ);
     renderWorld();
-    doFrame();
+    beginFrame();
+    if(haveFrameCube)
+    {
+      drawWireCube(targetX, targetY, targetZ);
+    }
+    endFrame();
     while(SDL_GetTicks() - startTicks < 16);
   }
   return 0;

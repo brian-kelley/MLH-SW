@@ -23,5 +23,7 @@ void updatePlayer(int xrel, int yrel);
 bool entityOnGround(Entity& e);
 extern Entity player;
 
+bool getTargetBlock(int& x, int& y, int& z);
+
 #endif
 

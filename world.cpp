@@ -220,10 +220,11 @@ void updateEntity(Entity& e)
     if(floor(e.pos.y) != floor(e.pos.y + e.vel.y))
     {
       float savedY = e.pos.y;
+      //test what would happen if entity dropped below the next block
       e.pos.y = ceil(e.pos.y + e.vel.y);
       if(entityOnGround(e))
       {
-        //don't fall past ceil(e.pos.y + e.vel.y)!
+        //don't fall past ceil(e.pos.y + e.vel.y), would get stuck!
         fallOneStep = true;
       }
       if(!fallOneStep)
@@ -277,5 +278,124 @@ bool entityOnGround(Entity& e)
     return collideBelow;
   }
   return false;
+}
+
+bool getTargetBlock(int& x, int& y, int& z)
+{
+  vec3 camPos = player.getEyePos();
+  vec3 camDir = camPos + player.getLookDir();
+  vec3 blockIter((int) camPos.x, (int) camPos.y, (int) camPos.z);
+  //iterate through blocks, finding the faces that player is looking through
+  while(true)
+  {
+    printf("Block iter now at %f,%f,%f\n", blockIter.x, blockIter.y, blockIter.z);
+    vec3 nextBlock = blockIter;
+    bool haveNext = false;
+    if(camDir.x > 0)
+    {
+      //does camPos + t * camDir pass through the +x face?
+      //note: +x face is at blockIter.x + 1
+      //just solve for y, z at the point the ray gets to blockIter.x + 1
+      vec3 intersect = camPos + ((blockIter.x + 1 - camPos.x) / camDir.x) * camDir;
+      if(intersect.y >= blockIter.y && intersect.y < blockIter.y + 1 &&
+         intersect.z >= blockIter.z && intersect.z < blockIter.z + 1)
+      {
+        nextBlock.x += 1;
+        haveNext = true;
+      }
+    }
+    if(camDir.x < 0 && !haveNext)
+    {
+      //-x face
+      vec3 intersect = camPos + ((blockIter.x - camPos.x) / camDir.x) * camDir;
+      if(intersect.y >= blockIter.y && intersect.y < blockIter.y + 1 &&
+         intersect.z >= blockIter.z && intersect.z < blockIter.z + 1)
+      {
+        nextBlock.x -= 1;
+        haveNext = true;
+      }
+    }
+    if(camDir.y > 0 && !haveNext)
+    {
+      //+y face
+      vec3 intersect = camPos + ((blockIter.y + 1 - camPos.y) / camDir.y) * camDir;
+      if(intersect.x >= blockIter.x && intersect.x < blockIter.x + 1 &&
+         intersect.z >= blockIter.z && intersect.z < blockIter.z + 1)
+      {
+        nextBlock.y += 1;
+        haveNext = true;
+      }
+    }
+    if(camDir.y < 0 && !haveNext)
+    {
+      //-y face
+      vec3 intersect = camPos + ((blockIter.y - camPos.y) / camDir.y) * camDir;
+      if(intersect.x >= blockIter.x && intersect.x < blockIter.x + 1 &&
+         intersect.z >= blockIter.z && intersect.z < blockIter.z + 1)
+      {
+        nextBlock.y -= 1;
+        haveNext = true;
+      }
+    }
+    if(camDir.z > 0 && !haveNext)
+    {
+      //+z face
+      vec3 intersect = camPos + ((blockIter.z + 1 - camPos.z) / camDir.z) * camDir;
+      if(intersect.x >= blockIter.x && intersect.x < blockIter.x + 1 &&
+         intersect.y >= blockIter.y && intersect.y < blockIter.y + 1)
+      {
+        nextBlock.z += 1;
+        haveNext = true;
+      }
+    }
+    if(camDir.z < 0 && !haveNext)
+    {
+      //-z face
+      vec3 intersect = camPos + ((blockIter.z - camPos.z) / camDir.z) * camDir;
+      if(intersect.x >= blockIter.x && intersect.x < blockIter.x + 1 &&
+         intersect.y >= blockIter.y && intersect.y < blockIter.y + 1)
+      {
+        nextBlock.z -= 1;
+        haveNext = true;
+      }
+    }
+    if(!haveNext)
+    {
+      printf("Couldn't find next block iter.\n");
+      printf("Note: camPos = %f, %f, %f\n", camPos.x, camPos.y, camPos.z);
+      printf("Note: camDir = %f, %f, %f\n", camDir.x, camDir.y, camDir.z);
+      return false;
+    }
+    if(isBlock(nextBlock.x, nextBlock.y, nextBlock.z))
+    {
+      //ray ended in a solid block
+      //go through all blocks that player fully or partially occupies, and if any of them match, return false
+      //otherwise set output parameters to block coords and return true
+      int xlo = floor(player.pos.x - player.hitWidth / 2);
+      int xhi = ceil(player.pos.x + player.hitWidth / 2);
+      int ylo = floor(player.pos.y);
+      int yhi = ceil(player.pos.y + player.hitHeight);
+      int zlo = floor(player.pos.z - player.hitWidth / 2);
+      int zhi = ceil(player.pos.z + player.hitWidth / 2);
+      if(xlo <= blockIter.x && blockIter.x <= xhi &&
+         ylo <= blockIter.y && blockIter.y <= yhi &&
+         zlo <= blockIter.z && blockIter.z <= zhi)
+      {
+        puts("Previous block intersects player.");
+        return false;
+      }
+      x = blockIter.x;
+      y = blockIter.y;
+      z = blockIter.z;
+      return true;
+    }
+    if(((nextBlock.x - camPos.x) * (nextBlock.x - camPos.x) + (nextBlock.y - camPos.y) * (nextBlock.y - camPos.y) + (nextBlock.z - camPos.z) * (nextBlock.z - camPos.z)) > (REACH * REACH))
+    {
+      //no block in reach
+      puts("No block in reach.");
+      return false;
+    }
+    blockIter = nextBlock;
+  }
 }
 

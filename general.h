@@ -8,19 +8,22 @@
 //Note in function declaration for output parameter
 #define OUT
 
-#define WORLD_SIZE 12
+#define WORLD_SIZE 40
 
 //Gravitational acceleration: block/s^2
 #define GRAV 3
 
 //Player initial upward jump velocity, in blocks/s
-#define JUMP_VEL 0.8
+#define JUMP_VEL 0.6
 
 //Speed of player (blocks per second)
 #define SPEED 6.0
 
 //Mouse sensitivity
 #define SENSITIVITY 0.005
+
+//Block placing reach
+#define REACH 5
 
 #include <cstdio>
 #include <cstdlib>
