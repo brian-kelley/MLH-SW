@@ -28,5 +28,9 @@ bool getTargetBlock(int& x, int& y, int& z);
 
 void placeBlock(int x, int y, int z);
 
+//Spawn a chase + destroy monster in random spot outside the buildable area
+void spawnMonster();
+void clearAllBlocks();
+
 #endif
 

@@ -10,6 +10,7 @@ int main()
   int targetY = 0;
   int targetZ = 0;
   bool haveFrameCube = false;
+  bool paused = false;
   while(true)
   {
     const int startTicks = SDL_GetTicks();
@@ -31,6 +32,14 @@ int main()
         {
           player.jumped = true;
         }
+        else if(e.key.keysym.scancode == SDL_SCANCODE_R)
+        {
+          initWorld();
+        }
+        else if(e.key.keysym.scancode == SDL_SCANCODE_P)
+        {
+          paused = !paused;
+        }
       }
       if(e.type == SDL_MOUSEBUTTONDOWN)
       {
@@ -40,17 +49,25 @@ int main()
         }
       }
     }
-    updatePlayer(xrel, yrel);
-    updateEntities();
-    cameraUpdate();
-    haveFrameCube = getTargetBlock(targetX, targetY, targetZ);
-    renderWorld();
-    beginFrame();
-    if(haveFrameCube)
+    if(!paused)
     {
-      drawWireCube(targetX, targetY, targetZ);
+      //Spawn a monster every ~10 seconds
+      if(rand() % 600 == 599)
+      {
+        spawnMonster();
+      }
+      updatePlayer(xrel, yrel);
+      updateEntities();
+      cameraUpdate();
+      haveFrameCube = getTargetBlock(targetX, targetY, targetZ);
+      renderWorld();
+      beginFrame();
+      if(haveFrameCube)
+      {
+        drawWireCube(targetX, targetY, targetZ);
+      }
+      endFrame();
     }
-    endFrame();
     while(SDL_GetTicks() - startTicks < 16);
   }
   return 0;

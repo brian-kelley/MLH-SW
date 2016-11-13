@@ -456,3 +456,7 @@ void setDynamicVBO()
   vboDynamicStart = vertices.size();
 }
 
+void flushGeom()
+{
+  vertices.clear();
+}

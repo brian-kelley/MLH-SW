@@ -20,6 +20,7 @@ struct Entity
   float vAngle;
   float speed;
   bool jumped;          //whether the entity wants to jump on the next timestep
+  bool alive;
   float jumpSpeed;
   aiFunc ai;            //function that autonomously changes velocity and performs actions (player's is NULL)
   vec3 getLookDir();

@@ -8,18 +8,33 @@ bool blocksChanged;
 
 void initWorld()
 {
-  memset(blocks, 0, sizeof(bool) * WORLD_SIZE * WORLD_SIZE * WORLD_SIZE);
-  //buildCastle();
-  buildPyramid();
-  blocksChanged = true;
+  clearAllBlocks();
+  buildCastle();
+  //buildPyramid();
   player.pos = vec3(-1, 5, -1);
   player.vel = vec3(0, 0, 0);
   player.hitWidth = 1;
   player.hitHeight = 2;
   player.hAngle = 0;
   player.vAngle = 0;
+  player.alive = true;
+  entities.clear();
+  blocksChanged = true;
+  flushGeom();
+  glClearColor(0.5, 0.5, 1, 1);
+}
+
+void spawnMonster()
+{
   Entity monster;
-  monster.pos = vec3(10, 3, -1); 
+  //Pick random coordinates outside buildable area
+  do
+  {
+    int x = rand() % (3 * WORLD_SIZE) - WORLD_SIZE;
+    int z = rand() % (3 * WORLD_SIZE) - WORLD_SIZE;
+    monster.pos = vec3(x, 4, z);
+  }
+  while(0 <= monster.pos.x && monster.pos.x <= WORLD_SIZE && 0 <= monster.pos.z && monster.pos.z <= WORLD_SIZE);
   monster.vel = vec3(0, 0, 0);
   monster.ai = chaseAI;
   monster.speed = 4 / 60.0;
@@ -99,6 +114,14 @@ void buildCastle()
   }
 }
 
+void clearAllBlocks()
+{
+  for(int i = 0; i < WORLD_SIZE * WORLD_SIZE * WORLD_SIZE; i++)
+  {
+    ((bool*) blocks)[i] = false;
+  }
+}
+
 void buildPyramid()
 {
   for(int x = 0; x < WORLD_SIZE; x++)
@@ -128,6 +151,8 @@ void setBlock(int x, int y, int z, bool fill)
 
 void updatePlayer(int xrel, int yrel)
 {
+  if(!player.alive)
+    return; //nothing to do!
   float& hAngle = player.hAngle;
   float& vAngle = player.vAngle;
   const Uint8* keystate = SDL_GetKeyboardState(NULL);
@@ -155,6 +180,24 @@ void updatePlayer(int xrel, int yrel)
   if(vAngle < -maxPitch)
     vAngle = -maxPitch;
   updateEntity(player);
+  //check for player collision with monster (insta-death!)
+  bool dead = false;
+  for(auto& e : entities)
+  {
+    if((int) e.pos.x == (int) player.pos.x &&
+       (int) e.pos.z == (int) player.pos.z &&
+       fabs(e.pos.y - player.pos.y) < 1.5)
+    {
+      dead = true;
+      break;
+    }
+  }
+  if(dead)
+  {
+    entities.clear();
+    player.alive = false;
+    glClearColor(0.7, 0, 0, 1);
+  }
 }
 
 void updateEntities()
@@ -378,7 +421,7 @@ bool getTargetBlock(int& x, int& y, int& z)
     {
       return false;
     }
-    if(isBlock(nextBlock.x, nextBlock.y, nextBlock.z))
+    if(isBlock(nextBlock.x, nextBlock.y, nextBlock.z) || nextBlock.y < 0)
     {
       //ray ended in a solid block
       //go through all blocks that player fully or partially occupies, and if any of them match, return false
