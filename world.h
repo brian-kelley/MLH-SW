@@ -6,7 +6,9 @@
 
 void initWorld();
 void renderWorld();
+void renderWorldSlow();
 void buildCastle();
+void buildPyramid();
 vec3 blockToWorld(int x, int y, int z);
 void worldToBlock(vec3 pos, OUT int& x, OUT int& y, OUT int& z);
 bool isBlock(int x, int y, int k);

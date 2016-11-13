@@ -20,7 +20,6 @@ GLint viewLoc;
 GLint projLoc;
 //Lighting uniforms
 GLint lightLoc; //uniform light position in both shaders
-vec3 lightPos;
 
 vector<Vertex> vertices;
 
@@ -37,7 +36,6 @@ void initWindow()
   glViewport(0, 0, WINW, WINH);
   glEnable(GL_DEPTH_TEST);
   glClearColor(0.5, 0.5, 1, 1);
-  lightPos = vec3(-100, 400, 50);
   initShaders();
   initVBO();
 }
@@ -54,7 +52,6 @@ void initShaders()
     "varying vec3 fragNormal;\n"
     "uniform mat4 view;\n"
     "uniform mat4 proj;\n"
-    "uniform vec3 lightPos;\n"
     "void main()\n"
     "{\n"
     "  gl_Position = proj * view * vec4(position.x, position.y, position.z, 1.0);\n"
@@ -67,9 +64,12 @@ void initShaders()
     "varying vec3 fragPos;\n"
     "varying vec3 fragNormal;\n"
     "varying vec4 fragColor;\n"
-    "uniform vec3 lightPos;\n"
     "void main()\n"
     "{\n"
+    "  vec3 lightPos;\n"
+    "  lightPos.x = 20;\n"
+    "  lightPos.y = 50;\n"
+    "  lightPos.z = -10;\n"
     "  vec3 lightDir = fragPos - lightPos;\n"
     "  float dotProd = dot(normalize(lightDir), fragNormal);\n"
     "  dotProd = clamp(dotProd, 0, 1);\n"
@@ -106,8 +106,6 @@ void initShaders()
   normalAttribLoc = glGetAttribLocation(progID, "normal");
   viewLoc = glGetUniformLocation(progID, "view");
   projLoc = glGetUniformLocation(progID, "proj");
-  lightLoc = glGetUniformLocation(progID, "lightPos");
-  glUniform3fv(lightLoc, 3, value_ptr<float>(lightPos));
   glDeleteShader(vshade);
   glDeleteShader(fshade);
 }
@@ -120,7 +118,7 @@ void initVBO()
   glGenBuffers(1, &vbo);
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
   vboCapacity = 0;
-  glVertexAttribPointer(posAttribLoc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*) 0);
+  glVertexAttribPointer(posAttribLoc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*) offsetof(Vertex, pos));
   glVertexAttribPointer(colorAttribLoc, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*) offsetof(Vertex, color));
   glVertexAttribPointer(normalAttribLoc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*) offsetof(Vertex, normal));
   glEnableVertexAttribArray(posAttribLoc);

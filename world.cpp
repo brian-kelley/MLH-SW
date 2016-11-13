@@ -5,7 +5,8 @@ std::vector<bool> blocks;
 void initWorld()
 {
   blocks = vector<bool>(WORLD_SIZE * WORLD_SIZE * WORLD_SIZE, false);
-  buildCastle();
+  //buildCastle();
+  buildPyramid();
 }
 
 void renderWorld()
@@ -30,6 +31,25 @@ void renderWorld()
         if(isBlock(i, j, k) ^ isBlock(i - 1, j, k))
         {
           drawLeftFace(i, j, k, stoneColor);
+        }
+      }
+    }
+  }
+}
+
+void renderWorldSlow()
+{
+  drawGround(WORLD_SIZE * 100);
+  vec4 stoneColor(0.4, 0.4, 0.4, 1.0);
+  for(int i = 0; i < WORLD_SIZE + 1; i++)
+  {
+    for(int j = 0; j < WORLD_SIZE + 1; j++)
+    {
+      for(int k = 0; k < WORLD_SIZE + 1; k++)
+      {
+        if(isBlock(i,j,k))
+        {
+          drawCube(i, j, k, stoneColor);
         }
       }
     }
@@ -64,6 +84,22 @@ void buildCastle()
     {
       setBlock(0, height, i);
       setBlock(width, height, i);
+    }
+  }
+}
+
+void buildPyramid()
+{
+  for(int x = 0; x < WORLD_SIZE; x++)
+  {
+    for(int z = 0; z < WORLD_SIZE; z++)
+    {
+      int h = WORLD_SIZE / 2 - std::max(abs(x - WORLD_SIZE / 2), abs(z - WORLD_SIZE / 2));
+      //int h = WORLD_SIZE / 2 - abs(x - WORLD_SIZE / 2) - abs(z - WORLD_SIZE / 2);
+      for(int y = 0; y < h; y++)
+      {
+        setBlock(x, y, z);
+      }
     }
   }
 }
