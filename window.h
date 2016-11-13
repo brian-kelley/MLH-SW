@@ -23,6 +23,12 @@ void initVBO();
 void initLighting();
 void doFrame();
 void updateMatrices(mat4& view, mat4& proj);
+void drawTopFace(int x, int y, int z, vec4 color);
+void drawBottomFace(int x, int y, int z, vec4 color);
+void drawLeftFace(int x, int y, int z, vec4 color);
+void drawRightFace(int x, int y, int z, vec4 color);
+void drawFrontFace(int x, int y, int z, vec4 color);
+void drawBackFace(int x, int y, int z, vec4 color);
 void drawCube(int x, int y, int z, vec4 color);
 //Draw large square for ground (blocks = world diameter)
 void drawGround(int blocks);

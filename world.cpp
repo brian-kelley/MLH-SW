@@ -10,16 +10,26 @@ void initWorld()
 
 void renderWorld()
 {
-  drawGround(WORLD_SIZE * 3);
-  for(int i = 0; i < WORLD_SIZE; i++)
+  drawGround(WORLD_SIZE * 100);
+  vec4 stoneColor(0.4, 0.4, 0.4, 1.0);
+  for(int i = 0; i < WORLD_SIZE + 1; i++)
   {
-    for(int j = 0; j < WORLD_SIZE; j++)
+    for(int j = 0; j < WORLD_SIZE + 1; j++)
     {
-      for(int k = 0; k < WORLD_SIZE; k++)
+      for(int k = 0; k < WORLD_SIZE + 1; k++)
       {
-        if(isBlock(i, j, k))
+        //at each block, draw top, front and left face only if the face is exposed
+        if(isBlock(i, j, k) ^ isBlock(i, j - 1, k) && j > 0)
         {
-          drawCube(i, j, k, vec4(0.4, 0.4, 0.4, 1.0));
+          drawTopFace(i, j, k, stoneColor);
+        }
+        if(isBlock(i, j, k) ^ isBlock(i, j, k - 1))
+        {
+          drawFrontFace(i, j, k, stoneColor);
+        }
+        if(isBlock(i, j, k) ^ isBlock(i - 1, j, k))
+        {
+          drawLeftFace(i, j, k, stoneColor);
         }
       }
     }
@@ -29,30 +39,31 @@ void renderWorld()
 void buildCastle()
 {
   int height = 4;
-  for(int i = 0; i < WORLD_SIZE; i++)
+  int width = 9;//WORLD_SIZE % 2 == 0 ? WORLD_SIZE - 2 : WORLD_SIZE - 1;
+  for(int i = 0; i < width + 1; i++)
   {
     for(int j = 0; j < height; j++)
     {
       setBlock(i, j, 0);
-      setBlock(i, j, WORLD_SIZE - 1);
+      setBlock(i, j, width);
     }
     if(i % 2 == 0)
     {
       setBlock(i, height, 0);
-      setBlock(i, height, WORLD_SIZE - 1);
+      setBlock(i, height, width);
     }
   }
-  for(int i = 0; i < WORLD_SIZE; i++)
+  for(int i = 0; i < width + 1; i++)
   {
     for(int j = 0; j < height; j++)
     {
       setBlock(0, j, i);
-      setBlock(WORLD_SIZE - 1, j, i);
+      setBlock(width, j, i);
     }
     if(i % 2 == 0)
     {
       setBlock(0, height, i);
-      setBlock(WORLD_SIZE - 1, height, i);
+      setBlock(width, height, i);
     }
   }
 }
@@ -71,6 +82,8 @@ void worldToBlock(vec3 pos, OUT int& x, OUT int& y, OUT int& z)
 
 bool isBlock(int x, int y, int z)
 {
+  if(x < 0 || y < 0 || z < 0 || x >= WORLD_SIZE || y >= WORLD_SIZE || z >= WORLD_SIZE)
+    return false;
   return blocks[x * WORLD_SIZE * WORLD_SIZE + y * WORLD_SIZE + z];
 }
 

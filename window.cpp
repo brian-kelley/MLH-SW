@@ -37,7 +37,7 @@ void initWindow()
   glViewport(0, 0, WINW, WINH);
   glEnable(GL_DEPTH_TEST);
   glClearColor(0.5, 0.5, 1, 1);
-  lightPos = vec3(-2, 40, 5);
+  lightPos = vec3(-100, 400, 50);
   initShaders();
   initVBO();
 }
@@ -134,13 +134,6 @@ void doFrame()
 {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glUseProgram(progID);
-  /*
-  drawGround(20);
-  drawCube(0, 0, 0, vec4(0.2, 0.2, 0.2, 1));
-  drawCube(0, 0, 1, vec4(1, 0, 0, 1));
-  drawCube(0, 0, 2, vec4(0, 1, 0, 1));
-  drawCube(0, 1, 2, vec4(0, 0, 1, 1));
-  */
   updateVBO();
   glBindVertexArray(vao);
   glDrawArrays(GL_TRIANGLES, 0, vertices.size());
@@ -153,6 +146,136 @@ void updateMatrices(mat4& view, mat4& proj)
 {
   glUniformMatrix4fv(viewLoc, 1, GL_FALSE, value_ptr(view));
   glUniformMatrix4fv(projLoc, 1, GL_FALSE, value_ptr(proj));
+}
+
+#define ADD_TRI(a, b, c, norm) \
+{ \
+  Vertex v1(a, norm, color); \
+  Vertex v2(b, norm, color); \
+  Vertex v3(c, norm, color); \
+  vertices.push_back(v1); \
+  vertices.push_back(v2); \
+  vertices.push_back(v3); \
+} 
+
+void drawTopFace(int x, int y, int z, vec4 color)
+{
+  float ax = x * CUBE;
+  float ay = y * CUBE;
+  float az = z * CUBE;
+  float bx = ax + CUBE;
+  float by = ay + CUBE;
+  float bz = az + CUBE;
+  vec3 p000(ax, ay, az);
+  vec3 p001(ax, ay, bz);
+  vec3 p010(ax, by, az);
+  vec3 p011(ax, by, bz);
+  vec3 p100(bx, ay, az);
+  vec3 p101(bx, ay, bz);
+  vec3 p110(bx, by, az);
+  vec3 p111(bx, by, bz);
+  ADD_TRI(p000, p100, p101, vec3(0, -1, 0));
+  ADD_TRI(p000, p101, p001, vec3(0, -1, 0));
+}
+
+void drawBottomFace(int x, int y, int z, vec4 color)
+{
+  float ax = x * CUBE;
+  float ay = y * CUBE;
+  float az = z * CUBE;
+  float bx = ax + CUBE;
+  float by = ay + CUBE;
+  float bz = az + CUBE;
+  vec3 p000(ax, ay, az);
+  vec3 p001(ax, ay, bz);
+  vec3 p010(ax, by, az);
+  vec3 p011(ax, by, bz);
+  vec3 p100(bx, ay, az);
+  vec3 p101(bx, ay, bz);
+  vec3 p110(bx, by, az);
+  vec3 p111(bx, by, bz);
+  ADD_TRI(p010, p110, p111, vec3(0, 1, 0));
+  ADD_TRI(p010, p111, p011, vec3(0, 1, 0));
+}
+
+void drawLeftFace(int x, int y, int z, vec4 color)
+{
+  float ax = x * CUBE;
+  float ay = y * CUBE;
+  float az = z * CUBE;
+  float bx = ax + CUBE;
+  float by = ay + CUBE;
+  float bz = az + CUBE;
+  vec3 p000(ax, ay, az);
+  vec3 p001(ax, ay, bz);
+  vec3 p010(ax, by, az);
+  vec3 p011(ax, by, bz);
+  vec3 p100(bx, ay, az);
+  vec3 p101(bx, ay, bz);
+  vec3 p110(bx, by, az);
+  vec3 p111(bx, by, bz);
+  ADD_TRI(p000, p001, p010, vec3(-1, 0, 0));
+  ADD_TRI(p010, p001, p011, vec3(-1, 0, 0));
+}
+
+void drawRightFace(int x, int y, int z, vec4 color)
+{
+  float ax = x * CUBE;
+  float ay = y * CUBE;
+  float az = z * CUBE;
+  float bx = ax + CUBE;
+  float by = ay + CUBE;
+  float bz = az + CUBE;
+  vec3 p000(ax, ay, az);
+  vec3 p001(ax, ay, bz);
+  vec3 p010(ax, by, az);
+  vec3 p011(ax, by, bz);
+  vec3 p100(bx, ay, az);
+  vec3 p101(bx, ay, bz);
+  vec3 p110(bx, by, az);
+  vec3 p111(bx, by, bz);
+  ADD_TRI(p100, p101, p111, vec3(1, 0, 0));
+  ADD_TRI(p100, p111, p110, vec3(1, 0, 0));
+}
+
+void drawFrontFace(int x, int y, int z, vec4 color)
+{
+  float ax = x * CUBE;
+  float ay = y * CUBE;
+  float az = z * CUBE;
+  float bx = ax + CUBE;
+  float by = ay + CUBE;
+  float bz = az + CUBE;
+  vec3 p000(ax, ay, az);
+  vec3 p001(ax, ay, bz);
+  vec3 p010(ax, by, az);
+  vec3 p011(ax, by, bz);
+  vec3 p100(bx, ay, az);
+  vec3 p101(bx, ay, bz);
+  vec3 p110(bx, by, az);
+  vec3 p111(bx, by, bz);
+  ADD_TRI(p000, p100, p110, vec3(0, 0, -1));
+  ADD_TRI(p000, p110, p010, vec3(0, 0, -1));
+}
+
+void drawBackFace(int x, int y, int z, vec4 color)
+{
+  float ax = x * CUBE;
+  float ay = y * CUBE;
+  float az = z * CUBE;
+  float bx = ax + CUBE;
+  float by = ay + CUBE;
+  float bz = az + CUBE;
+  vec3 p000(ax, ay, az);
+  vec3 p001(ax, ay, bz);
+  vec3 p010(ax, by, az);
+  vec3 p011(ax, by, bz);
+  vec3 p100(bx, ay, az);
+  vec3 p101(bx, ay, bz);
+  vec3 p110(bx, by, az);
+  vec3 p111(bx, by, bz);
+  ADD_TRI(p101, p001, p111, vec3(0, 0, 1));
+  ADD_TRI(p001, p011, p111, vec3(0, 0, 1));
 }
 
 void drawCube(int x, int y, int z, vec4 color)
@@ -173,15 +296,6 @@ void drawCube(int x, int y, int z, vec4 color)
   vec3 p111(bx, by, bz);
   //add the 36 vertices needed for 12 triangles (6 quads)
   vertices.reserve(vertices.size() + 36);
-  #define ADD_TRI(a, b, c, norm) \
-  { \
-    Vertex v1(a, norm, color); \
-    Vertex v2(b, norm, color); \
-    Vertex v3(c, norm, color); \
-    vertices.push_back(v1); \
-    vertices.push_back(v2); \
-    vertices.push_back(v3); \
-  } 
   //front
   ADD_TRI(p000, p100, p110, vec3(0, 0, -1));
   ADD_TRI(p000, p110, p010, vec3(0, 0, -1));
