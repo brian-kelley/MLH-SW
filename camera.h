@@ -4,7 +4,9 @@
 #include "general.h"
 #include "window.h"
 
-void cameraUpdate();
+void camInit();
+//Pass x and y motion (in pixels) for current frame
+void cameraUpdate(int xrel, int yrel);
 
 #endif
 
