@@ -1,6 +1,6 @@
 #include "world.h"
 
-std::vector<bool> blocks;
+bool blocks[WORLD_SIZE][WORLD_SIZE][WORLD_SIZE];
 //note: entities does not include player, since player needs special update
 std::vector<Entity> entities;
 Entity player;
@@ -8,7 +8,7 @@ bool blocksChanged;
 
 void initWorld()
 {
-  blocks = vector<bool>(WORLD_SIZE * WORLD_SIZE * WORLD_SIZE, false);
+  memset(blocks, 0, sizeof(bool) * WORLD_SIZE * WORLD_SIZE * WORLD_SIZE);
   //buildCastle();
   buildPyramid();
   blocksChanged = true;
@@ -59,26 +59,26 @@ void buildCastle()
   {
     for(int j = 0; j < height; j++)
     {
-      setBlock(i, j, 0);
-      setBlock(i, j, width);
+      blocks[i][j][0] = true;
+      blocks[i][j][width] = true;
     }
     if(i % 2 == 0)
     {
-      setBlock(i, height, 0);
-      setBlock(i, height, width);
+      blocks[i][height][0] = true;
+      blocks[i][height][width] = true;
     }
   }
   for(int i = 0; i < width + 1; i++)
   {
     for(int j = 0; j < height; j++)
     {
-      setBlock(0, j, i);
-      setBlock(width, j, i);
+      blocks[0][j][i] = true;
+      blocks[width][j][i] = true;
     }
     if(i % 2 == 0)
     {
-      setBlock(0, height, i);
-      setBlock(width, height, i);
+      blocks[0][height][i] = true;
+      blocks[width][height][i] = true;
     }
   }
 }
@@ -92,7 +92,7 @@ void buildPyramid()
       int h = WORLD_SIZE / 2 - std::max(abs(x - WORLD_SIZE / 2), abs(z - WORLD_SIZE / 2));
       for(int y = 0; y < h; y++)
       {
-        setBlock(x, y, z);
+        blocks[x][y][z] = true;
       }
     }
   }
@@ -102,12 +102,12 @@ bool isBlock(int x, int y, int z)
 {
   if(x < 0 || y < 0 || z < 0 || x >= WORLD_SIZE || y >= WORLD_SIZE || z >= WORLD_SIZE)
     return false;
-  return blocks[x * WORLD_SIZE * WORLD_SIZE + y * WORLD_SIZE + z];
+  return blocks[x][y][z];
 }
 
-void setBlock(int x, int y, int k, bool fill)
+void setBlock(int x, int y, int z, bool fill)
 {
-  blocks[x * WORLD_SIZE * WORLD_SIZE + y * WORLD_SIZE + k] = fill;
+  blocks[x][y][z] = fill;
 }
 
 void updatePlayer(int xrel, int yrel)
@@ -169,12 +169,35 @@ static bool collision(Entity& e)
   {
     for(int z = zlo; z <= zhi; z++)
     {
-      for(int y = e.pos.y; y < e.pos.y + e.hitHeight; y++)
+      for(int y = floorf(e.pos.y); y < floorf(e.pos.y) + e.hitHeight; y++)
       {
         if(isBlock(x, y, z))
         {
+          printf("Entity collided with %i,%i,%i\n", x, y, z);
           return true;
         }
+      }
+    }
+  }
+  return false;
+}
+
+static bool collisionY(Entity& e)
+{
+  if(e.pos.y < 0)
+    return true;
+  int r = e.hitWidth / 2;
+  int xlo = floorf(e.pos.x - r);
+  int xhi = ceilf(e.pos.x + r);
+  int zlo = floorf(e.pos.z - r);
+  int zhi = ceilf(e.pos.z + r);
+  for(int i = xlo; i <= xhi; i++)
+  {
+    for(int j = zlo; j <= zhi; j++)
+    {
+      if(isBlock(i, floorf(e.pos.y), j))
+      {
+        return true;
       }
     }
   }
@@ -184,8 +207,10 @@ static bool collision(Entity& e)
 void updateEntity(Entity& e)
 {
   bool onGround = entityOnGround(e);
-  float xdisp = 0;
-  float zdisp = 0;
+  if(onGround)
+    puts("On ground");
+  else
+    puts("In air");
   if(!onGround)
   {
     //freefall, increase downward velocity
@@ -195,8 +220,8 @@ void updateEntity(Entity& e)
   {
     //give the entity enouugh upward velocity to reach height JUMP (blocks)
     e.vel.y = JUMP_VEL;
-    e.jumped = false;
   }
+  e.jumped = false;
   if(!onGround && e.vel.y < 0)
   {
     //freefall and moving downwards
@@ -216,55 +241,39 @@ void updateEntity(Entity& e)
         break;
       }
     }
-    e.pos += e.vel;
   }
-  else
+  e.pos.y += e.vel.y;
+  if(collisionY(e))
   {
-    //on ground, move normally
-    xdisp = e.vel.x;
-    zdisp = e.vel.z;
-  }
-  //can't go through the ground
-  if(e.pos.y <= 0)
-  {
-    e.pos.y = 0;
+    puts("Collided in y.");
+    e.pos.y = floor(e.pos.y);
+    e.pos.y = e.pos.y < 0 ? 0 : e.pos.y;
     e.vel.y = 0;
   }
-  e.pos.x += xdisp;
+  e.pos.x += e.vel.x;
   if(collision(e))
-    e.pos.x -= xdisp;
-  e.pos.z += zdisp;
+  {
+    puts("Collided in x.");
+    e.pos.x -= e.vel.x;
+    e.vel.x = 0;
+  }
+  e.pos.z += e.vel.z;
   if(collision(e))
-    e.pos.z -= zdisp;
+  {
+    puts("Collided in z.");
+    e.pos.z -= e.vel.z;
+    e.vel.z = 0;
+  }
 }
 
 bool entityOnGround(Entity& e)
 {
-  //2 necessary conditions for standing on ground:
-  //  -pos.y is (almost) exactly on a block boundary
-  //  -the block below is solid
-  //level is the y of the block that the entity could be standing on
-  int level = ceilf(e.pos.y);
-  float ey = level;
-  //standing on world bottom
-  if(e.pos.y < 1e-4)
+  printf("e.pos.y is %f\n", e.pos.y);
+  printf("floor(e.pos.y) = %f\n", floorf(e.pos.y));
+  if(e.pos.y - (int) e.pos.y < 1e-4 && isBlock(e.pos.x, e.pos.y, e.pos.z))
     return true;
-  //need to test all blocks with corners within circular entity base
-  if(fabsf(ey - e.pos.y) > 1e-4)
-    return false;
-  int r = e.hitWidth / 2;
-  int xlo = floorf(e.pos.x - r);
-  int xhi = ceilf(e.pos.x + r);
-  int zlo = floorf(e.pos.z - r);
-  int zhi = ceilf(e.pos.z + r);
-  for(int i = xlo; i <= xhi; i++)
-  {
-    for(int j = zlo; j <= zhi; j++)
-    {
-      if(isBlock(i, level, j))
-        return true;
-    }
-  }
+  if(e.pos.y <= 1e-4)
+    return true;
   return false;
 }
 
