@@ -2,11 +2,12 @@
 #define CAMERA_H
 
 #include "general.h"
+#include "entity.h"
 #include "window.h"
+#include "world.h"
 
-void camInit();
 //Pass x and y motion (in pixels) for current frame
-void cameraUpdate(int xrel, int yrel);
+void cameraUpdate();
 
 #endif
 

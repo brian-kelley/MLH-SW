@@ -5,9 +5,16 @@
 #define WINW 1280
 #define WINH 720
 
+//Note in function declaration for output parameter
 #define OUT
 
-#define WORLD_SIZE 30
+#define WORLD_SIZE 80
+
+//Gravitational acceleration: block/s^2
+#define GRAV 3
+
+//Player initial upward jump velocity, in blocks/s
+#define JUMP_VEL 0.4
 
 //Size of cube (in viewspace coordinates)
 #define CUBE 0.5

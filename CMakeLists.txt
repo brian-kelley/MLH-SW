@@ -12,6 +12,7 @@ add_executable(Defense
   window.cpp
   camera.cpp
   world.cpp
+  entity.cpp
 )
 
 target_link_libraries(Defense ${SDL2_LIB} ${GL_LIB})

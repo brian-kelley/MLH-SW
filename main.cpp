@@ -5,13 +5,13 @@
 int main()
 {
   initWindow();
-  camInit();
   initWorld();
   while(true)
   {
     const int startTicks = SDL_GetTicks();
     int xrel = 0;
     int yrel = 0;
+    bool jumped = false;
     SDL_Event e;
     while(SDL_PollEvent(&e) != 0)
     {
@@ -22,8 +22,17 @@ int main()
         xrel = e.motion.xrel;
         yrel = e.motion.yrel;
       }
+      if(e.type == SDL_KEYDOWN)
+      {
+        if(e.key.keysym.scancode == SDL_SCANCODE_SPACE)
+        {
+          jumped = true;
+        }
+      }
     }
-    cameraUpdate(xrel, yrel);
+    updatePlayer(xrel, yrel, jumped);
+    updateEntities();
+    cameraUpdate();
     renderWorld();
     doFrame();
     while(SDL_GetTicks() - startTicks < 16);

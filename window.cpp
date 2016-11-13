@@ -137,7 +137,7 @@ void doFrame()
   glDrawArrays(GL_TRIANGLES, 0, vertices.size());
   glBindVertexArray(0);
   SDL_GL_SwapWindow(window);
-  vertices.clear();
+  //vertices.clear();
 }
 
 void updateMatrices(mat4& view, mat4& proj)
