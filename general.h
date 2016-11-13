@@ -14,10 +14,7 @@
 #define GRAV 3
 
 //Player initial upward jump velocity, in blocks/s
-#define JUMP_VEL 0.4
-
-//Size of cube (in viewspace coordinates)
-#define CUBE 0.5
+#define JUMP_VEL 0.8
 
 //Speed of player (blocks per second)
 #define SPEED 6.0

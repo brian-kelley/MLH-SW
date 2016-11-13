@@ -3,6 +3,8 @@
 
 #include "general.h"
 
+typedef void (*aiFunc)(void*);
+
 struct Entity
 {
   vec3 pos;     //Worldspace position (of hitbox corner)
@@ -12,8 +14,11 @@ struct Entity
   float hitHeight;  //hitbox height (y)
   float hAngle;
   float vAngle;
+  bool jumped;          //whether the entity wants to jump on the next timestep
+  aiFunc ai;            //function that autonomously changes velocity and performs actions (player's is NULL)
   vec3 getLookDir();
   vec3 getEyePos();     //(world space) return 95% up the hitbox height, in center of footprint
 };
 
 #endif
+

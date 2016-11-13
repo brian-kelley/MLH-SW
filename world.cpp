@@ -12,10 +12,10 @@ void initWorld()
   //buildCastle();
   buildPyramid();
   blocksChanged = true;
-  player.pos = vec3(-CUBE, 5, -CUBE);
+  player.pos = vec3(-1, 5, -1);
   player.vel = vec3(0, 0, 0);
-  player.hitWidth = CUBE;
-  player.hitHeight = 2 * CUBE;
+  player.hitWidth = 4;
+  player.hitHeight = 2;
   player.hAngle = 0;
   player.vAngle = 0;
 }
@@ -98,18 +98,6 @@ void buildPyramid()
   }
 }
 
-vec3 blockToWorld(int x, int y, int z)
-{
-  return vec3(x * CUBE, y * CUBE, z * CUBE);
-}
-
-void worldToBlock(vec3 pos, OUT int& x, OUT int& y, OUT int& z)
-{
-  x = floorf(pos.x / CUBE);
-  y = floorf(pos.y / CUBE);
-  z = floorf(pos.z / CUBE);
-}
-
 bool isBlock(int x, int y, int z)
 {
   if(x < 0 || y < 0 || z < 0 || x >= WORLD_SIZE || y >= WORLD_SIZE || z >= WORLD_SIZE)
@@ -122,17 +110,16 @@ void setBlock(int x, int y, int k, bool fill)
   blocks[x * WORLD_SIZE * WORLD_SIZE + y * WORLD_SIZE + k] = fill;
 }
 
-void updatePlayer(int xrel, int yrel, bool jumped)
+void updatePlayer(int xrel, int yrel)
 {
   float& hAngle = player.hAngle;
   float& vAngle = player.vAngle;
   const Uint8* keystate = SDL_GetKeyboardState(NULL);
-  float speed = SPEED / 60 * CUBE;
+  float speed = SPEED / 60;
   float aheadDist;
   float leftDist;
   aheadDist = speed * ((keystate[SDL_SCANCODE_W] ? 1 : 0) + (keystate[SDL_SCANCODE_S] ? -1 : 0));
   leftDist = speed * ((keystate[SDL_SCANCODE_A] ? 1 : 0) + (keystate[SDL_SCANCODE_D] ? -1 : 0));
-  bool onGround = entityOnGround(player);
   float savedVelY = player.vel.y;
   //use hAngle angle to determine displacement from forward-back and left-right movement
   player.vel = aheadDist * vec3(cosf(hAngle), 0, sinf(hAngle));
@@ -151,58 +138,126 @@ void updatePlayer(int xrel, int yrel, bool jumped)
     vAngle = maxPitch;
   if(vAngle < -maxPitch)
     vAngle = -maxPitch;
-  if(!entityOnGround(player))
+  updateEntity(player);
+}
+
+void updateEntities()
+{
+  for(auto& e : entities)
   {
-    //player in freefall, increase downward velocity
-    player.vel.y -= (GRAV / 60.0 * CUBE * CUBE);
+    //position += velocity
+    //collision check with blocks, may need to change velocity and/or position
+    //TODO: collision check with other entities
+    if(e.ai)
+    {
+      //call ai func with self as argument
+      e.ai(&e);
+    }
+    //check for vertical collision
   }
-  else if(jumped)
+}
+
+//check if any blocks fully or partially occupy the cylindrical disk 1 block high, r meters in radius (x, y also in meters)
+static bool checkBlockDisk(float x, float z, float r, int level, OUT int xhit, OUT int zhit)
+{
+  int bx = floorf(x);
+  int bz = floorf(z);
+  //most likely possibility: there is a block immediately under the entity
+  if(isBlock(bx, level, bz))
   {
-    //give the player enouugh upward velocity to reach height JUMP (blocks)
-    player.vel.y = JUMP_VEL * CUBE;
+    xhit = bx;
+    zhit = bz;
+    return true;
   }
-  if(!onGround && player.vel.y < 0)
+  //save the square roots inside inner loop
+  float rSquared = r * r;
+  int blockR = ceil(r);
+  for(int i = bx - blockR; i <= bx + blockR; i++)
   {
-    //player is in freefall and moving downwards
-    //if player is falling very fast, need to check collision on all blocks between current and future position
-    float newY = player.pos.y + player.vel.y;
-    int bx = floorf(player.pos.x / CUBE);
-    int bz = floorf(player.pos.z / CUBE);
-    int highBlock = floorf(player.pos.y / CUBE);
-    int lowBlock = floorf(newY / CUBE);
+    for(int j = bz - blockR; j <= bz + blockR; j++)
+    {
+      //check if block corner is within disk
+      float distSquared = (x - i) * (x - i) + (z - j) * (z - j);
+      if(distSquared < rSquared)
+      {
+        //point inside disk, test for solid blocks among the 4 around this point
+        if(isBlock(i - 1, level, j - 1))
+        {
+          xhit = i - 1;
+          zhit = j - 1;
+          return true;
+        }
+        if(isBlock(i, level, j - 1))
+        {
+          xhit = i;
+          zhit = j - 1;
+          return true;
+        }
+        if(isBlock(i - 1, level, j))
+        {
+          xhit = i - 1;
+          zhit = j;
+          return true;
+        }
+        if(isBlock(i, level, j))
+        {
+          xhit = i;
+          zhit = j;
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+void updateEntity(Entity& e)
+{
+  bool onGround = entityOnGround(e);
+  if(!onGround)
+  {
+    //freefall, increase downward velocity
+    e.vel.y -= GRAV / 60.0;
+  }
+  else if(e.jumped)
+  {
+    //give the entity enouugh upward velocity to reach height JUMP (blocks)
+    e.vel.y = JUMP_VEL;
+    e.jumped = false;
+  }
+  if(!onGround && e.vel.y < 0)
+  {
+    //freefall and moving downwards
+    //if falling very fast, need to check collision on all blocks between current and future position
+    float newY = e.pos.y + e.vel.y;
+    int bx = floorf(e.pos.x);
+    int bz = floorf(e.pos.z);
+    int highBlock = floorf(e.pos.y);
+    int lowBlock = floorf(newY);
     for(int i = lowBlock; i < highBlock; i++)
     {
       if(isBlock(bx, i, bz))
       {
         //player hits this block and stops
-        player.pos.y = i * CUBE;
-        player.vel.y = 0;
+        e.pos.y = i;
+        e.vel.y = 0;
         break;
       }
     }
-    player.pos += player.vel;
+    e.pos += e.vel;
   }
   else
   {
     //on ground, this isn't an issue
-    player.pos += player.vel;
+    e.pos += e.vel;
   }
   //can't go through the ground
-  if(player.pos.y < 0)
+  if(e.pos.y <= 0)
   {
-    player.pos.y = 0;
-    player.vel.y = 0;
+    e.pos.y = 0;
+    e.vel.y = 0;
   }
-}
-
-void updateEntities()
-{
-  //for(auto& e : entities)
-  {
-    //position += velocity
-    //collision check with blocks, may need to change velocity and/or position
-    //TODO: collision check with other entities
-  }
+  //test horizontal collision with blocks
 }
 
 bool entityOnGround(Entity& e)
@@ -210,13 +265,16 @@ bool entityOnGround(Entity& e)
   //2 necessary conditions for standing on ground:
   //  -pos.y is (almost) exactly on a block boundary
   //  -the block below is solid
-  int x, y, z;
-  worldToBlock(e.pos, x, y, z);
-  float ey = y * CUBE;
+  //level is the y of the block that the entity could be standing on
+  int level = floorf(e.pos.y);
+  float ey = level;
   //standing on world bottom
   if(e.pos.y < 1e-4)
     return true;
-  if(fabsf(ey - e.pos.y) > 1e-4 || !isBlock(x, y - 1, z))
+  int unused1 = 0;
+  int unused2 = 0;
+  //need to test all blocks with corners within circular entity base
+  if(fabsf(ey - e.pos.y) > 1e-4 || !checkBlockDisk(e.pos.x, e.pos.z, e.hitWidth / 2, level + 1, unused1, unused2))
     return false;
   return true;
 }

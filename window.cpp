@@ -158,12 +158,12 @@ void updateMatrices(mat4& view, mat4& proj)
 
 void drawTopFace(int x, int y, int z, vec4 color)
 {
-  float ax = x * CUBE;
-  float ay = y * CUBE;
-  float az = z * CUBE;
-  float bx = ax + CUBE;
-  float by = ay + CUBE;
-  float bz = az + CUBE;
+  float ax = x;
+  float ay = y;
+  float az = z;
+  float bx = ax + 1;
+  float by = ay + 1;
+  float bz = az + 1;
   vec3 p000(ax, ay, az);
   vec3 p001(ax, ay, bz);
   vec3 p010(ax, by, az);
@@ -178,12 +178,12 @@ void drawTopFace(int x, int y, int z, vec4 color)
 
 void drawBottomFace(int x, int y, int z, vec4 color)
 {
-  float ax = x * CUBE;
-  float ay = y * CUBE;
-  float az = z * CUBE;
-  float bx = ax + CUBE;
-  float by = ay + CUBE;
-  float bz = az + CUBE;
+  float ax = x;
+  float ay = y;
+  float az = z;
+  float bx = ax + 1;
+  float by = ay + 1;
+  float bz = az + 1;
   vec3 p000(ax, ay, az);
   vec3 p001(ax, ay, bz);
   vec3 p010(ax, by, az);
@@ -198,12 +198,12 @@ void drawBottomFace(int x, int y, int z, vec4 color)
 
 void drawLeftFace(int x, int y, int z, vec4 color)
 {
-  float ax = x * CUBE;
-  float ay = y * CUBE;
-  float az = z * CUBE;
-  float bx = ax + CUBE;
-  float by = ay + CUBE;
-  float bz = az + CUBE;
+  float ax = x;
+  float ay = y;
+  float az = z;
+  float bx = ax + 1;
+  float by = ay + 1;
+  float bz = az + 1;
   vec3 p000(ax, ay, az);
   vec3 p001(ax, ay, bz);
   vec3 p010(ax, by, az);
@@ -218,12 +218,12 @@ void drawLeftFace(int x, int y, int z, vec4 color)
 
 void drawRightFace(int x, int y, int z, vec4 color)
 {
-  float ax = x * CUBE;
-  float ay = y * CUBE;
-  float az = z * CUBE;
-  float bx = ax + CUBE;
-  float by = ay + CUBE;
-  float bz = az + CUBE;
+  float ax = x;
+  float ay = y;
+  float az = z;
+  float bx = ax + 1;
+  float by = ay + 1;
+  float bz = az + 1;
   vec3 p000(ax, ay, az);
   vec3 p001(ax, ay, bz);
   vec3 p010(ax, by, az);
@@ -238,12 +238,12 @@ void drawRightFace(int x, int y, int z, vec4 color)
 
 void drawFrontFace(int x, int y, int z, vec4 color)
 {
-  float ax = x * CUBE;
-  float ay = y * CUBE;
-  float az = z * CUBE;
-  float bx = ax + CUBE;
-  float by = ay + CUBE;
-  float bz = az + CUBE;
+  float ax = x;
+  float ay = y;
+  float az = z;
+  float bx = ax + 1;
+  float by = ay + 1;
+  float bz = az + 1;
   vec3 p000(ax, ay, az);
   vec3 p001(ax, ay, bz);
   vec3 p010(ax, by, az);
@@ -258,12 +258,12 @@ void drawFrontFace(int x, int y, int z, vec4 color)
 
 void drawBackFace(int x, int y, int z, vec4 color)
 {
-  float ax = x * CUBE;
-  float ay = y * CUBE;
-  float az = z * CUBE;
-  float bx = ax + CUBE;
-  float by = ay + CUBE;
-  float bz = az + CUBE;
+  float ax = x;
+  float ay = y;
+  float az = z;
+  float bx = ax + 1;
+  float by = ay + 1;
+  float bz = az + 1;
   vec3 p000(ax, ay, az);
   vec3 p001(ax, ay, bz);
   vec3 p010(ax, by, az);
@@ -278,12 +278,12 @@ void drawBackFace(int x, int y, int z, vec4 color)
 
 void drawCube(int x, int y, int z, vec4 color)
 {
-  float ax = x * CUBE;
-  float ay = y * CUBE;
-  float az = z * CUBE;
-  float bx = ax + CUBE;
-  float by = ay + CUBE;
-  float bz = az + CUBE;
+  float ax = x;
+  float ay = y;
+  float az = z;
+  float bx = ax + 1;
+  float by = ay + 1;
+  float bz = az + 1;
   vec3 p000(ax, ay, az);
   vec3 p001(ax, ay, bz);
   vec3 p010(ax, by, az);
