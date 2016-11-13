@@ -173,7 +173,6 @@ static bool collision(Entity& e)
       {
         if(isBlock(x, y, z))
         {
-          printf("Entity collided with %i,%i,%i\n", x, y, z);
           return true;
         }
       }
@@ -222,31 +221,11 @@ void updateEntity(Entity& e)
     e.vel.y = JUMP_VEL;
   }
   e.jumped = false;
-  if(!onGround && e.vel.y < 0)
-  {
-    //freefall and moving downwards
-    //if falling very fast, need to check collision on all blocks between current and future position
-    float newY = e.pos.y + e.vel.y;
-    int bx = floorf(e.pos.x);
-    int bz = floorf(e.pos.z);
-    int highBlock = floorf(e.pos.y);
-    int lowBlock = floorf(newY);
-    for(int i = lowBlock; i < highBlock; i++)
-    {
-      if(isBlock(bx, i, bz))
-      {
-        //player hit this block and stops
-        e.pos.y = i;
-        e.vel.y = 0;
-        break;
-      }
-    }
-  }
   e.pos.y += e.vel.y;
   if(collisionY(e))
   {
     puts("Collided in y.");
-    e.pos.y = floor(e.pos.y);
+    e.pos.y = ceil(e.pos.y);
     e.pos.y = e.pos.y < 0 ? 0 : e.pos.y;
     e.vel.y = 0;
   }
