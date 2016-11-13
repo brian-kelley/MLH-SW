@@ -139,7 +139,6 @@ void updatePlayer(int xrel, int yrel)
   if(vAngle < -maxPitch)
     vAngle = -maxPitch;
   updateEntity(player);
-  printf("Player pos: %.1f, %.1f, %.1f\n", player.pos.x, player.pos.y, player.pos.z);
 }
 
 void updateEntities()
@@ -213,14 +212,25 @@ static bool collisionY(Entity& e)
 void updateEntity(Entity& e)
 {
   bool onGround = entityOnGround(e);
-  if(onGround)
-    puts("On ground");
-  else
-    puts("In air");
+  bool fallOneStep = false;
   if(!onGround)
   {
     //freefall, increase downward velocity
     e.vel.y -= GRAV / 60.0;
+    if(floor(e.pos.y) != floor(e.pos.y + e.vel.y))
+    {
+      float savedY = e.pos.y;
+      e.pos.y = ceil(e.pos.y + e.vel.y);
+      if(entityOnGround(e))
+      {
+        //don't fall past ceil(e.pos.y + e.vel.y)!
+        fallOneStep = true;
+      }
+      if(!fallOneStep)
+      {
+        e.pos.y = savedY;
+      }
+    }
   }
   else if(e.jumped)
   {
@@ -228,7 +238,13 @@ void updateEntity(Entity& e)
     e.vel.y = JUMP_VEL;
   }
   e.jumped = false;
-  e.pos.y += e.vel.y;
+  if(fallOneStep)
+  {
+    e.pos.y = ceil(e.pos.y + e.vel.y);
+    e.vel.y = 0;
+  }
+  else
+    e.pos.y += e.vel.y;
   if(collisionY(e))
   {
     e.pos.y = ceil(e.pos.y);
@@ -247,8 +263,6 @@ void updateEntity(Entity& e)
     e.pos.z -= e.vel.z;
     e.vel.z = 0;
   }
-  //if still stuck, need to be pushed out of the colliding block
-  //note: this only affects x/z, when falling from above into stuck position
 }
 
 bool entityOnGround(Entity& e)
