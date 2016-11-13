@@ -479,4 +479,41 @@ void drawHUD()
   //glUniform1i(hudLoc, 0);
 }
 
+void drawCuboid(vec3 base, float width, float height, vec4 color)
+{
+  float ax = base.x - width / 2;
+  float ay = base.y;
+  float az = base.z - width / 2;
+  float bx = ax + width;
+  float by = ay + height;
+  float bz = az + width;
+  vec3 p000(ax, ay, az);
+  vec3 p001(ax, ay, bz);
+  vec3 p010(ax, by, az);
+  vec3 p011(ax, by, bz);
+  vec3 p100(bx, ay, az);
+  vec3 p101(bx, ay, bz);
+  vec3 p110(bx, by, az);
+  vec3 p111(bx, by, bz);
+  //add the 36 vertices needed for 12 triangles (6 quads)
+  vertices.reserve(vertices.size() + 36);
+  //front
+  ADD_TRI(p000, p100, p110, vec3(0, 0, -1));
+  ADD_TRI(p000, p110, p010, vec3(0, 0, -1));
+  //top
+  ADD_TRI(p000, p100, p101, vec3(0, -1, 0));
+  ADD_TRI(p000, p101, p001, vec3(0, -1, 0));
+  //left
+  ADD_TRI(p000, p001, p010, vec3(-1, 0, 0));
+  ADD_TRI(p010, p001, p011, vec3(-1, 0, 0));
+  //right
+  ADD_TRI(p100, p101, p111, vec3(1, 0, 0));
+  ADD_TRI(p100, p111, p110, vec3(1, 0, 0));
+  //back
+  ADD_TRI(p101, p001, p111, vec3(0, 0, 1));
+  ADD_TRI(p001, p011, p111, vec3(0, 0, 1));
+  //bottom
+  ADD_TRI(p010, p110, p111, vec3(0, 1, 0));
+  ADD_TRI(p010, p111, p011, vec3(0, 1, 0));
+}
 

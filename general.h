@@ -11,10 +11,10 @@
 #define WORLD_SIZE 40
 
 //Gravitational acceleration: block/s^2
-#define GRAV 3
+#define GRAV 1
 
 //Player initial upward jump velocity, in blocks/s
-#define JUMP_VEL 0.6
+#define JUMP_VEL 0.2
 
 //Speed of player (blocks per second)
 #define SPEED 6.0
@@ -23,7 +23,7 @@
 #define SENSITIVITY 0.005
 
 //Block placing reach
-#define REACH 5
+#define REACH 15
 
 #include <cstdio>
 #include <cstdlib>

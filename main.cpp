@@ -9,6 +9,7 @@ int main()
   int targetX = 0;
   int targetY = 0;
   int targetZ = 0;
+  bool haveFrameCube = false;
   while(true)
   {
     const int startTicks = SDL_GetTicks();
@@ -31,11 +32,18 @@ int main()
           player.jumped = true;
         }
       }
+      if(e.type == SDL_MOUSEBUTTONDOWN)
+      {
+        if(haveFrameCube && e.button.state == SDL_PRESSED)
+        {
+          placeBlock(targetX, targetY, targetZ);
+        }
+      }
     }
     updatePlayer(xrel, yrel);
     updateEntities();
     cameraUpdate();
-    bool haveFrameCube = getTargetBlock(targetX, targetY, targetZ);
+    haveFrameCube = getTargetBlock(targetX, targetY, targetZ);
     renderWorld();
     beginFrame();
     if(haveFrameCube)

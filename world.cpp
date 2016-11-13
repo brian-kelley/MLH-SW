@@ -18,37 +18,52 @@ void initWorld()
   player.hitHeight = 2;
   player.hAngle = 0;
   player.vAngle = 0;
+  Entity monster;
+  monster.pos = vec3(10, 3, -1); 
+  monster.vel = vec3(0, 0, 0);
+  monster.ai = chaseAI;
+  monster.speed = 4 / 60.0;
+  monster.hitWidth = 1;
+  monster.hitHeight = 2;
+  monster.jumpSpeed = 2;
+  entities.push_back(monster);
 }
 
 void renderWorld()
 {
-  if(!blocksChanged)
-    return;
-  drawGround(WORLD_SIZE * 100);
-  vec4 stoneColor(0.4, 0.4, 0.4, 1.0);
-  for(int i = 0; i < WORLD_SIZE + 1; i++)
+  if(blocksChanged)
   {
-    for(int j = 0; j < WORLD_SIZE + 1; j++)
+    drawGround(WORLD_SIZE * 100);
+    vec4 stoneColor(0.4, 0.4, 0.4, 1.0);
+    for(int i = 0; i < WORLD_SIZE + 1; i++)
     {
-      for(int k = 0; k < WORLD_SIZE + 1; k++)
+      for(int j = 0; j < WORLD_SIZE + 1; j++)
       {
-        //at each block, draw top, front and left face only if the face is exposed
-        if(isBlock(i, j, k) ^ isBlock(i, j - 1, k) && j > 0)
+        for(int k = 0; k < WORLD_SIZE + 1; k++)
         {
-          drawTopFace(i, j, k, stoneColor);
-        }
-        if(isBlock(i, j, k) ^ isBlock(i, j, k - 1))
-        {
-          drawFrontFace(i, j, k, stoneColor);
-        }
-        if(isBlock(i, j, k) ^ isBlock(i - 1, j, k))
-        {
-          drawLeftFace(i, j, k, stoneColor);
+          //at each block, draw top, front and left face only if the face is exposed
+          if(isBlock(i, j, k) ^ isBlock(i, j - 1, k) && j > 0)
+          {
+            drawTopFace(i, j, k, stoneColor);
+          }
+          if(isBlock(i, j, k) ^ isBlock(i, j, k - 1))
+          {
+            drawFrontFace(i, j, k, stoneColor);
+          }
+          if(isBlock(i, j, k) ^ isBlock(i - 1, j, k))
+          {
+            drawLeftFace(i, j, k, stoneColor);
+          }
         }
       }
     }
+    blocksChanged = false;
   }
-  blocksChanged = false;
+  for(auto& e : entities)
+  {
+    //draw monsters dark blue
+    drawCuboid(e.pos, e.hitWidth, e.hitHeight, vec4(0, 0, 0.3, 1));
+  }
 }
 
 void buildCastle()
@@ -153,7 +168,7 @@ void updateEntities()
       //call ai func with self as argument
       e.ai(&e);
     }
-    //check for vertical collision
+    updateEntity(e);
   }
 }
 
@@ -283,12 +298,11 @@ bool entityOnGround(Entity& e)
 bool getTargetBlock(int& x, int& y, int& z)
 {
   vec3 camPos = player.getEyePos();
-  vec3 camDir = camPos + player.getLookDir();
+  vec3 camDir = player.getLookDir();
   vec3 blockIter((int) camPos.x, (int) camPos.y, (int) camPos.z);
   //iterate through blocks, finding the faces that player is looking through
   while(true)
   {
-    printf("Block iter now at %f,%f,%f\n", blockIter.x, blockIter.y, blockIter.z);
     vec3 nextBlock = blockIter;
     bool haveNext = false;
     if(camDir.x > 0)
@@ -361,9 +375,6 @@ bool getTargetBlock(int& x, int& y, int& z)
     }
     if(!haveNext)
     {
-      printf("Couldn't find next block iter.\n");
-      printf("Note: camPos = %f, %f, %f\n", camPos.x, camPos.y, camPos.z);
-      printf("Note: camDir = %f, %f, %f\n", camDir.x, camDir.y, camDir.z);
       return false;
     }
     if(isBlock(nextBlock.x, nextBlock.y, nextBlock.z))
@@ -381,7 +392,6 @@ bool getTargetBlock(int& x, int& y, int& z)
          ylo <= blockIter.y && blockIter.y <= yhi &&
          zlo <= blockIter.z && blockIter.z <= zhi)
       {
-        puts("Previous block intersects player.");
         return false;
       }
       x = blockIter.x;
@@ -392,10 +402,18 @@ bool getTargetBlock(int& x, int& y, int& z)
     if(((nextBlock.x - camPos.x) * (nextBlock.x - camPos.x) + (nextBlock.y - camPos.y) * (nextBlock.y - camPos.y) + (nextBlock.z - camPos.z) * (nextBlock.z - camPos.z)) > (REACH * REACH))
     {
       //no block in reach
-      puts("No block in reach.");
       return false;
     }
     blockIter = nextBlock;
   }
+}
+
+void placeBlock(int x, int y, int z)
+{
+  if(x >= 0 && x < WORLD_SIZE && y >= 0 && y < WORLD_SIZE && z >= 0 && z < WORLD_SIZE)
+  {
+    blocks[x][y][z] = true;
+  }
+  blocksChanged = true;
 }
 

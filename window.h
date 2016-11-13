@@ -44,6 +44,7 @@ void drawFrontFace(int x, int y, int z, vec4 color);
 void drawBackFace(int x, int y, int z, vec4 color);
 void drawCube(int x, int y, int z, vec4 color);
 void drawWireCube(int x, int y, int z);
+void drawCuboid(vec3 base, float width, float height, vec4 color);
 //Draw large square for ground (blocks = world diameter)
 void drawGround(int blocks);
 //send vertices to VBO
