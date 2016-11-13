@@ -158,7 +158,7 @@ void updateEntities()
   }
 }
 
-static bool collision(Entity& e)
+static bool collision(Entity& e, int* OUT xhit = NULL, int* OUT zhit = NULL)
 {
   float r = e.hitWidth / 2;
   int xlo = floor(e.pos.x - r);
@@ -169,10 +169,15 @@ static bool collision(Entity& e)
   {
     for(int z = zlo; z <= zhi; z++)
     {
-      for(int y = floorf(e.pos.y); y < floorf(e.pos.y) + e.hitHeight; y++)
+      for(int y = e.pos.y; y < e.pos.y + e.hitHeight; y++)
       {
         if(isBlock(x, y, z))
         {
+          if(xhit)
+          {
+            *xhit = x;
+            *zhit = z;
+          }
           return true;
         }
       }
@@ -188,15 +193,15 @@ static bool collisionY(Entity& e)
   if(e.vel.y > 0)
     return false;
   int r = e.hitWidth / 2;
-  int xlo = floorf(e.pos.x - r);
-  int xhi = ceilf(e.pos.x + r);
-  int zlo = floorf(e.pos.z - r);
-  int zhi = ceilf(e.pos.z + r);
+  int xlo = e.pos.x - r;
+  int xhi = e.pos.x + r;
+  int zlo = e.pos.z - r;
+  int zhi = e.pos.z + r;
   for(int i = xlo; i <= xhi; i++)
   {
     for(int j = zlo; j <= zhi; j++)
     {
-      if(isBlock(i, floorf(e.pos.y), j))
+      if(isBlock(i, e.pos.y, j))
       {
         return true;
       }
@@ -226,7 +231,6 @@ void updateEntity(Entity& e)
   e.pos.y += e.vel.y;
   if(collisionY(e))
   {
-    puts("Collided in y.");
     e.pos.y = ceil(e.pos.y);
     e.pos.y = e.pos.y < 0 ? 0 : e.pos.y;
     e.vel.y = 0;
@@ -234,27 +238,30 @@ void updateEntity(Entity& e)
   e.pos.x += e.vel.x;
   if(collision(e))
   {
-    puts("Collided in x.");
     e.pos.x -= e.vel.x;
     e.vel.x = 0;
   }
   e.pos.z += e.vel.z;
   if(collision(e))
   {
-    puts("Collided in z.");
     e.pos.z -= e.vel.z;
     e.vel.z = 0;
   }
+  //if still stuck, need to be pushed out of the colliding block
+  //note: this only affects x/z, when falling from above into stuck position
 }
 
 bool entityOnGround(Entity& e)
 {
-  printf("e.pos.y is %f\n", e.pos.y);
-  printf("floor(e.pos.y) = %f\n", floorf(e.pos.y));
-  if(fabsf(e.pos.y - (int) e.pos.y) < 1e-4 && isBlock(e.pos.x, e.pos.y, e.pos.z))
-    return true;
   if(e.pos.y <= 1e-4)
     return true;
+  if(fabsf(e.pos.y - (int) e.pos.y) < 1e-4)
+  {
+    e.pos.y -= 0.1;
+    bool collideBelow = collision(e);
+    e.pos.y += 0.1;
+    return collideBelow;
+  }
   return false;
 }
 
