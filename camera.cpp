@@ -22,7 +22,7 @@ void cameraUpdate(int xrel, int yrel)
   float leftDist = speed * ((keystate[SDL_SCANCODE_A] ? 1 : 0) + (keystate[SDL_SCANCODE_D] ? -1 : 0));
   //use hAngle angle to determine displacement from forward-back and left-right movement
   camPos += aheadDist * vec3(cosf(hAngle), 0, sinf(hAngle));
-  camPos += leftDist * vec3(sinf(hAngle), 0, cosf(hAngle));
+  camPos += leftDist * vec3(sinf(hAngle), 0, -cosf(hAngle));
   //update vAngle and hAngle
   hAngle += sensitivity * xrel;
   if(hAngle < 0)
@@ -46,6 +46,5 @@ void cameraUpdate(int xrel, int yrel)
   mat4 view = lookAt<float>(camPos, center, up);
   mat4 proj = perspective<float>(45.0f, (float) WINW / WINH, 0.1, 100);
   updateMatrices(view, proj);
-  printf("Camera @ (%.2f, %.2f, %.2f)\n", camPos.x, camPos.y, camPos.z);
 }
 

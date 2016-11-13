@@ -109,8 +109,10 @@ void initVBO()
 
 void doFrame()
 {
+  vertices.clear();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glUseProgram(progID);
+  drawGround(20);
   drawCube(0, 0, 0, vec4(0, 0, 0, 1));
   drawCube(0, 0, 1, vec4(1, 0, 0, 1));
   drawCube(0, 0, 2, vec4(0, 1, 0, 1));
@@ -173,6 +175,22 @@ void drawCube(int x, int y, int z, vec4 color)
   //bottom
   ADD_TRI(p010, p110, p111);
   ADD_TRI(p010, p111, p011);
+}
+
+void drawGround(int blocks)
+{
+  int radius = blocks / 2;
+  vec4 color(0, 0.6, 0.1, 1.0f);
+  vec3 p1(-radius, 0, -radius);
+  vec3 p2(radius, 0, -radius);
+  vec3 p3(-radius, 0, radius);
+  vec3 p4(radius, 0, radius);
+  vertices.push_back(Vertex(p1, color));
+  vertices.push_back(Vertex(p2, color));
+  vertices.push_back(Vertex(p3, color));
+  vertices.push_back(Vertex(p2, color));
+  vertices.push_back(Vertex(p3, color));
+  vertices.push_back(Vertex(p4, color));
 }
 
 void updateVBO()

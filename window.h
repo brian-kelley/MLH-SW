@@ -21,6 +21,8 @@ void initVBO();
 void doFrame();
 void updateMatrices(mat4& view, mat4& proj);
 void drawCube(int x, int y, int z, vec4 color);
+//Draw large square for ground (blocks = world diameter)
+void drawGround(int blocks);
 //send vertices to VBO
 void updateVBO();
 
