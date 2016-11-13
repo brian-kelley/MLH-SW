@@ -185,6 +185,8 @@ static bool collisionY(Entity& e)
 {
   if(e.pos.y < 0)
     return true;
+  if(e.vel.y > 0)
+    return false;
   int r = e.hitWidth / 2;
   int xlo = floorf(e.pos.x - r);
   int xhi = ceilf(e.pos.x + r);
@@ -249,7 +251,7 @@ bool entityOnGround(Entity& e)
 {
   printf("e.pos.y is %f\n", e.pos.y);
   printf("floor(e.pos.y) = %f\n", floorf(e.pos.y));
-  if(e.pos.y - (int) e.pos.y < 1e-4 && isBlock(e.pos.x, e.pos.y, e.pos.z))
+  if(fabsf(e.pos.y - (int) e.pos.y) < 1e-4 && isBlock(e.pos.x, e.pos.y, e.pos.z))
     return true;
   if(e.pos.y <= 1e-4)
     return true;
