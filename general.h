@@ -8,7 +8,7 @@
 //Note in function declaration for output parameter
 #define OUT
 
-#define WORLD_SIZE 80
+#define WORLD_SIZE 12
 
 //Gravitational acceleration: block/s^2
 #define GRAV 3

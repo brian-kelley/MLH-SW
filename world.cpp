@@ -14,7 +14,7 @@ void initWorld()
   blocksChanged = true;
   player.pos = vec3(-1, 5, -1);
   player.vel = vec3(0, 0, 0);
-  player.hitWidth = 4;
+  player.hitWidth = 1;
   player.hitHeight = 2;
   player.hAngle = 0;
   player.vAngle = 0;
@@ -139,6 +139,7 @@ void updatePlayer(int xrel, int yrel)
   if(vAngle < -maxPitch)
     vAngle = -maxPitch;
   updateEntity(player);
+  printf("Player pos: %.1f, %.1f, %.1f\n", player.pos.x, player.pos.y, player.pos.z);
 }
 
 void updateEntities()
@@ -157,52 +158,21 @@ void updateEntities()
   }
 }
 
-//check if any blocks fully or partially occupy the cylindrical disk 1 block high, r meters in radius (x, y also in meters)
-static bool checkBlockDisk(float x, float z, float r, int level, OUT int xhit, OUT int zhit)
+static bool collision(Entity& e)
 {
-  int bx = floorf(x);
-  int bz = floorf(z);
-  //most likely possibility: there is a block immediately under the entity
-  if(isBlock(bx, level, bz))
+  float r = e.hitWidth / 2;
+  int xlo = floor(e.pos.x - r);
+  int xhi = floor(e.pos.x + r);
+  int zlo = floor(e.pos.z - r);
+  int zhi = floor(e.pos.z + r);
+  for(int x = xlo; x <= xhi; x++)
   {
-    xhit = bx;
-    zhit = bz;
-    return true;
-  }
-  //save the square roots inside inner loop
-  float rSquared = r * r;
-  int blockR = ceil(r);
-  for(int i = bx - blockR; i <= bx + blockR; i++)
-  {
-    for(int j = bz - blockR; j <= bz + blockR; j++)
+    for(int z = zlo; z <= zhi; z++)
     {
-      //check if block corner is within disk
-      float distSquared = (x - i) * (x - i) + (z - j) * (z - j);
-      if(distSquared < rSquared)
+      for(int y = e.pos.y; y < e.pos.y + e.hitHeight; y++)
       {
-        //point inside disk, test for solid blocks among the 4 around this point
-        if(isBlock(i - 1, level, j - 1))
+        if(isBlock(x, y, z))
         {
-          xhit = i - 1;
-          zhit = j - 1;
-          return true;
-        }
-        if(isBlock(i, level, j - 1))
-        {
-          xhit = i;
-          zhit = j - 1;
-          return true;
-        }
-        if(isBlock(i - 1, level, j))
-        {
-          xhit = i - 1;
-          zhit = j;
-          return true;
-        }
-        if(isBlock(i, level, j))
-        {
-          xhit = i;
-          zhit = j;
           return true;
         }
       }
@@ -214,6 +184,8 @@ static bool checkBlockDisk(float x, float z, float r, int level, OUT int xhit, O
 void updateEntity(Entity& e)
 {
   bool onGround = entityOnGround(e);
+  float xdisp = 0;
+  float zdisp = 0;
   if(!onGround)
   {
     //freefall, increase downward velocity
@@ -238,7 +210,7 @@ void updateEntity(Entity& e)
     {
       if(isBlock(bx, i, bz))
       {
-        //player hits this block and stops
+        //player hit this block and stops
         e.pos.y = i;
         e.vel.y = 0;
         break;
@@ -248,8 +220,9 @@ void updateEntity(Entity& e)
   }
   else
   {
-    //on ground, this isn't an issue
-    e.pos += e.vel;
+    //on ground, move normally
+    xdisp = e.vel.x;
+    zdisp = e.vel.z;
   }
   //can't go through the ground
   if(e.pos.y <= 0)
@@ -257,7 +230,12 @@ void updateEntity(Entity& e)
     e.pos.y = 0;
     e.vel.y = 0;
   }
-  //test horizontal collision with blocks
+  e.pos.x += xdisp;
+  if(collision(e))
+    e.pos.x -= xdisp;
+  e.pos.z += zdisp;
+  if(collision(e))
+    e.pos.z -= zdisp;
 }
 
 bool entityOnGround(Entity& e)
@@ -271,11 +249,22 @@ bool entityOnGround(Entity& e)
   //standing on world bottom
   if(e.pos.y < 1e-4)
     return true;
-  int unused1 = 0;
-  int unused2 = 0;
   //need to test all blocks with corners within circular entity base
-  if(fabsf(ey - e.pos.y) > 1e-4 || !checkBlockDisk(e.pos.x, e.pos.z, e.hitWidth / 2, level, unused1, unused2))
+  if(fabsf(ey - e.pos.y) > 1e-4)
     return false;
-  return true;
+  int r = e.hitWidth / 2;
+  int xlo = floorf(e.pos.x - r);
+  int xhi = ceilf(e.pos.x + r);
+  int zlo = floorf(e.pos.z - r);
+  int zhi = ceilf(e.pos.z + r);
+  for(int i = xlo; i <= xhi; i++)
+  {
+    for(int j = zlo; j <= zhi; j++)
+    {
+      if(isBlock(i, level, j))
+        return true;
+    }
+  }
+  return false;
 }
 
